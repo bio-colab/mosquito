@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة قتل البعوض المحسنة</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+
+        body, html {
+            font-family: 'Tajawal', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        #gameArea {
+            width: 100vw;
+            height: 100vh;
+            background-image: url('https://te.legra.ph/file/c796bdb5f8af16057e48f.jpg');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+        }
+        .mosquito {
+            position: absolute;
+            background-size: contain;
+            background-repeat: no-repeat;
+            transition: transform 0.1s;
+        }
+        .mosquito-normal {
+            width: 40px;
+            height: 40px;
+            background-image: url('https://te.legra.ph/file/9ad4842ca5551afa72b98.png');
+        }
+        .mosquito-special1 {
+            width: 50px;
+            height: 50px;
+            background-image: url('https://te.legra.ph/file/f6a786bcd78874940731a.png');
+        }
+        .mosquito-special2 {
+            width: 60px;
+            height: 60px;
+            background-image: url('https://te.legra.ph/file/c09205deab6a580e3bc63.png');
+        }
+        #slipper {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            pointer-events: none;
+            transform: translate(-50%, -50%) rotate(45deg);
+            transition: transform 0.1s;
+            display: none;
+        }
+        .top-bar {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: space-between;
+            width: 90%;
+            max-width: 600px;
+            z-index: 1000;
+        }
+        .info-box {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            flex: 1;
+            text-align: center;
+            margin: 0 5px;
+        }
+        .slap-mark {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .flash {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: white;
+            opacity: 0;
+            pointer-events: none;
+        }
+        @keyframes slap {
+            0% { transform: translate(-50%, -50%) rotate(45deg) scale(1); }
+            25% { transform: translate(-50%, -50%) rotate(-10deg) scale(1.2); }
+            50% { transform: translate(-50%, -50%) rotate(0deg) scale(1.4); }
+            75% { transform: translate(-50%, -50%) rotate(10deg) scale(1.2); }
+            100% { transform: translate(-50%, -50%) rotate(45deg) scale(1); }
+        }
+        .slap-animation {
+            animation: slap 0.3s ease-out;
+        }
+        @keyframes scorePopup {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+            100% { transform: scale(1); }
+        }
+        .score-popup {
+            animation: scorePopup 0.3s ease-out;
+        }
+        .slipper-select-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        .slipper-select {
+            display: flex;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 15px;
+            margin-top: 10px;
+        }
+        .slipper-option {
+            width: 60px;
+            height: 60px;
+            margin: 0 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        .slipper-option:hover, .slipper-option.selected {
+            border-color: #feca57;
+            transform: scale(1.1);
+        }
+        .select-text {
+            font-size: 14px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 5px 10px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+        }
+        .refresh-button {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+        .refresh-button:hover {
+            transform: rotate(180deg);
+        }
+        .pause-button {
+            position: fixed;
+            top: 10px;
+            right: 60px;
+            background: rgba(255, 255, 255, 0.8);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+        .pause-button:hover {
+            transform: scale(1.2);
+        }
+        .mute-button {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+        .mute-button:hover {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body>
+    <div id="gameArea">
+        <div class="flash"></div>
+        <div id="slipper"></div>
+    </div>
+    <div class="top-bar">
+        <div class="info-box">النقاط: <span id="score">0</span></div>
+        <div class="info-box">الوقت: <span id="timer">60</span></div>
+        <div class="info-box">أعلى نتيجة: <span id="highScore">0</span></div>
+    </div>
+    <div class="refresh-button" onclick="location.reload()">
+        <i class="fas fa-sync-alt"></i>
+    </div>
+<div class="pause-button" onclick="togglePause()">
+        <i class="fas fa-pause"></i>
+    </div>
+    <div class="mute-button" onclick="toggleMute()">
+        <i class="fas fa-volume-up" id="muteIcon"></i>
+    </div>
+    <div class="slipper-select-container">
+        <div class="select-text">اختر الشبشب لبدء اللعبة:</div>
+        <div class="slipper-select">
+            <img src="https://te.legra.ph/file/02e97f21fa4e91ae35a11.png" class="slipper-option" onclick="selectSlipper(this)">
+            <img src="https://te.legra.ph/file/edbb1e16ef6204fbbba7a.png" class="slipper-option" onclick="selectSlipper(this)">
+            <img src="https://te.legra.ph/file/17a71aef605b0f1f7b48b.png" class="slipper-option" onclick="selectSlipper(this)">
+        </div>
+    </div>
+
+    <script>
+        let gameArea = document.getElementById('gameArea');
+        let slipper = document.getElementById('slipper');
+        let scoreElement = document.getElementById('score');
+        let timerElement = document.getElementById('timer');
+        let highScoreElement = document.getElementById('highScore');
+        let pauseButton = document.querySelector('.pause-button');
+        let isPaused = false;
+        let isMuted = false;
+        let gameInterval, mosquitoInterval, timerInterval;
+        let score = 0;
+        let timer = 60;
+        let highScore = localStorage.getItem('highScore') || 0;
+
+        highScoreElement.textContent = highScore;
+
+        document.addEventListener('mousemove', (e) => {
+            slipper.style.left = e.pageX + 'px';
+            slipper.style.top = e.pageY + 'px';
+        });
+
+        document.addEventListener('click', () => {
+            if (!slipper.style.display) return;
+
+            slipper.classList.add('slap-animation');
+            setTimeout(() => slipper.classList.remove('slap-animation'), 300);
+            createFlash();
+        });
+
+        function createFlash() {
+            let flash = document.querySelector('.flash');
+            flash.style.opacity = 0.4;
+            setTimeout(() => flash.style.opacity = 0, 50);
+        }
+
+        function startGame() {
+            score = 0;
+            scoreElement.textContent = score;
+            timer = 60;
+            timerElement.textContent = timer;
+            gameArea.innerHTML = '';
+
+            gameInterval = setInterval(updateGame, 1000 / 60);
+            mosquitoInterval = setInterval(createMosquito, 1000);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateGame() {
+            if (!isPaused) {
+                let mosquitos = document.querySelectorAll('.mosquito');
+                mosquitos.forEach(mosquito => moveMosquito(mosquito));
+            }
+        }
+
+        function moveMosquito(mosquito) {
+            mosquito.style.left = `${parseInt(mosquito.style.left) + (Math.random() * 10 - 5)}px`;
+            mosquito.style.top = `${parseInt(mosquito.style.top) + (Math.random() * 10 - 5)}px`;
+        }
+
+        function createMosquito() {
+            if (isPaused) return;
+
+            let mosquito = document.createElement('div');
+            mosquito.className = `mosquito mosquito-${['normal', 'special1', 'special2'][Math.floor(Math.random() * 3)]}`;
+            mosquito.style.left = Math.random() * (gameArea.clientWidth - 40) + 'px';
+            mosquito.style.top = Math.random() * (gameArea.clientHeight - 40) + 'px';
+            mosquito.onclick = () => killMosquito(mosquito);
+            gameArea.appendChild(mosquito);
+
+            setTimeout(() => mosquito.remove(), 3000);
+        }
+
+        function killMosquito(mosquito) {
+            gameArea.removeChild(mosquito);
+            score++;
+            scoreElement.textContent = score;
+            if (score > highScore) {
+                highScore = score;
+                highScoreElement.textContent = highScore;
+                localStorage.setItem('highScore', highScore);
+            }
+        }
+
+        function updateTimer() {
+            if (!isPaused) {
+                timer--;
+                timerElement.textContent = timer;
+                if (timer <= 0) endGame();
+            }
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            clearInterval(mosquitoInterval);
+            clearInterval(timerInterval);
+            alert('انتهت اللعبة! نتيجتك هي: ' + score);
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            pauseButton.querySelector('i').classList.toggle('fa-play', isPaused);
+            pauseButton.querySelector('i').classList.toggle('fa-pause', !isPaused);
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            let muteIcon = document.getElementById('muteIcon');
+            muteIcon.classList.toggle('fa-volume-up', !isMuted);
+            muteIcon.classList.toggle('fa-volume-mute', isMuted);
+            // Add logic to mute/unmute sounds if implemented
+        }
+
+        function selectSlipper(element) {
+            document.querySelectorAll('.slipper-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            slipper.style.backgroundImage = `url(${element.src})`;
+            slipper.style.display = 'block';
+            document.querySelector('.slipper-select-container').style.display = 'none';
+            startGame();
+        }
+    </script>
+</body>
+</html>
