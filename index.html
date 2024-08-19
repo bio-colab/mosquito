@@ -231,132 +231,163 @@
     <div class="slipper-select-container">
         <div class="select-text">اختر الشبشب لبدء اللعبة:</div>
         <div class="slipper-select">
-            <img src="https://te.legra.ph/file/02e97f21fa4e91ae35a11.png" class="slipper-option" onclick="selectSlipper(this)">
-            <img src="https://te.legra.ph/file/edbb1e16ef6204fbbba7a.png" class="slipper-option" onclick="selectSlipper(this)">
-            <img src="https://te.legra.ph/file/17a71aef605b0f1f7b48b.png" class="slipper-option" onclick="selectSlipper(this)">
+            <img src="https://te.legra.ph/file/533ce7942c03ff1059ad9.png" class="slipper-option" onclick="selectSlipper(this)">
+            <img src="https://te.legra.ph/file/50e46104d65b12ea197e8.png" class="slipper-option" onclick="selectSlipper(this)">
+            <img src="https://te.legra.ph/file/96f38957dd15a0eac788a.png" class="slipper-option" onclick="selectSlipper(this)">
         </div>
     </div>
 
     <script>
-        let gameArea = document.getElementById('gameArea');
-        let slipper = document.getElementById('slipper');
-        let scoreElement = document.getElementById('score');
-        let timerElement = document.getElementById('timer');
-        let highScoreElement = document.getElementById('highScore');
-        let pauseButton = document.querySelector('.pause-button');
-        let isPaused = false;
-        let isMuted = false;
-        let gameInterval, mosquitoInterval, timerInterval;
-        let score = 0;
-        let timer = 60;
-        let highScore = localStorage.getItem('highScore') || 0;
+let gameArea = document.getElementById('gameArea');
+let slipper = document.getElementById('slipper');
+let scoreElement = document.getElementById('score');
+let timerElement = document.getElementById('timer');
+let highScoreElement = document.getElementById('highScore');
+let pauseButton = document.querySelector('.pause-button');
+let isPaused = false;
+let isMuted = false;
+let gameInterval, mosquitoInterval, timerInterval;
+let score = 0;
+let timer = 60;
+let highScore = localStorage.getItem('highScore') || 0;
 
+highScoreElement.textContent = highScore;
+
+// Load sound effects
+let slapSound = new Audio('slap.mp3'); // Replace with actual sound URL
+let mosquitoBuzzSound = new Audio('buzz.mp3'); // Replace with actual sound URL
+let gameOverSound = new Audio('game-over.wav'); // Replace with actual sound URL
+
+document.addEventListener('mousemove', (e) => {
+    slipper.style.left = e.pageX + 'px';
+    slipper.style.top = e.pageY + 'px';
+});
+
+document.addEventListener('click', () => {
+    if (!slipper.style.display) return;
+
+    slipper.classList.add('slap-animation');
+    slapSound.play(); // Play slap sound
+    setTimeout(() => slipper.classList.remove('slap-animation'), 300);
+    createFlash();
+});
+
+function createFlash() {
+    let flash = document.querySelector('.flash');
+    flash.style.opacity = 0.4;
+    setTimeout(() => flash.style.opacity = 0, 50);
+}
+
+function startGame() {
+    score = 0;
+    scoreElement.textContent = score;
+    timer = 60;
+    timerElement.textContent = timer;
+    gameArea.innerHTML = '';
+
+    gameInterval = setInterval(updateGame, 1000 / 60);
+    mosquitoInterval = setInterval(createMosquito, 1000);
+    timerInterval = setInterval(updateTimer, 1000);
+
+    if (!isMuted) {
+        mosquitoBuzzSound.loop = true;
+        mosquitoBuzzSound.play(); // Start mosquito buzz sound
+    }
+}
+
+function updateGame() {
+    if (!isPaused) {
+        let mosquitos = document.querySelectorAll('.mosquito');
+        mosquitos.forEach(mosquito => moveMosquito(mosquito));
+    }
+}
+
+function moveMosquito(mosquito) {
+    mosquito.style.left = `${parseInt(mosquito.style.left) + (Math.random() * 10 - 5)}px`;
+    mosquito.style.top = `${parseInt(mosquito.style.top) + (Math.random() * 10 - 5)}px`;
+}
+
+function createMosquito() {
+    if (isPaused) return;
+
+    let mosquito = document.createElement('div');
+    mosquito.className = `mosquito mosquito-${['normal', 'special1', 'special2'][Math.floor(Math.random() * 3)]}`;
+    mosquito.style.left = Math.random() * (gameArea.clientWidth - 40) + 'px';
+    mosquito.style.top = Math.random() * (gameArea.clientHeight - 40) + 'px';
+    mosquito.onclick = () => killMosquito(mosquito);
+    gameArea.appendChild(mosquito);
+
+    setTimeout(() => mosquito.remove(), 3000);
+}
+
+function killMosquito(mosquito) {
+    gameArea.removeChild(mosquito);
+    score++;
+    scoreElement.textContent = score;
+    if (score > highScore) {
+        highScore = score;
         highScoreElement.textContent = highScore;
+        localStorage.setItem('highScore', highScore);
+    }
+    if (!isMuted) {
+        slapSound.play(); // Play slap sound when mosquito is killed
+    }
+}
 
-        document.addEventListener('mousemove', (e) => {
-            slipper.style.left = e.pageX + 'px';
-            slipper.style.top = e.pageY + 'px';
-        });
+function updateTimer() {
+    if (!isPaused) {
+        timer--;
+        timerElement.textContent = timer;
+        if (timer <= 0) endGame();
+    }
+}
 
-        document.addEventListener('click', () => {
-            if (!slipper.style.display) return;
+function endGame() {
+    clearInterval(gameInterval);
+    clearInterval(mosquitoInterval);
+    clearInterval(timerInterval);
+    mosquitoBuzzSound.pause(); // Stop mosquito buzz sound
+    if (!isMuted) {
+        gameOverSound.play(); // Play game over sound
+    }
+    alert('انتهت اللعبة! نتيجتك هي: ' + score);
+}
 
-            slipper.classList.add('slap-animation');
-            setTimeout(() => slipper.classList.remove('slap-animation'), 300);
-            createFlash();
-        });
+function togglePause() {
+    isPaused = !isPaused;
+    pauseButton.querySelector('i').classList.toggle('fa-play', isPaused);
+    pauseButton.querySelector('i').classList.toggle('fa-pause', !isPaused);
+    if (isPaused) {
+        mosquitoBuzzSound.pause();
+    } else if (!isMuted) {
+        mosquitoBuzzSound.play();
+    }
+}
 
-        function createFlash() {
-            let flash = document.querySelector('.flash');
-            flash.style.opacity = 0.4;
-            setTimeout(() => flash.style.opacity = 0, 50);
-        }
+function toggleMute() {
+    isMuted = !isMuted;
+    document.getElementById('muteIcon').classList.toggle('fa-volume-up', !isMuted);
+    document.getElementById('muteIcon').classList.toggle('fa-volume-mute', isMuted);
+    if (isMuted) {
+        slapSound.muted = true;
+        mosquitoBuzzSound.muted = true;
+        gameOverSound.muted = true;
+    } else {
+        slapSound.muted = false;
+        mosquitoBuzzSound.muted = false;
+        gameOverSound.muted = false;
+    }
+}
 
-        function startGame() {
-            score = 0;
-            scoreElement.textContent = score;
-            timer = 60;
-            timerElement.textContent = timer;
-            gameArea.innerHTML = '';
-
-            gameInterval = setInterval(updateGame, 1000 / 60);
-            mosquitoInterval = setInterval(createMosquito, 1000);
-            timerInterval = setInterval(updateTimer, 1000);
-        }
-
-        function updateGame() {
-            if (!isPaused) {
-                let mosquitos = document.querySelectorAll('.mosquito');
-                mosquitos.forEach(mosquito => moveMosquito(mosquito));
-            }
-        }
-
-        function moveMosquito(mosquito) {
-            mosquito.style.left = `${parseInt(mosquito.style.left) + (Math.random() * 10 - 5)}px`;
-            mosquito.style.top = `${parseInt(mosquito.style.top) + (Math.random() * 10 - 5)}px`;
-        }
-
-        function createMosquito() {
-            if (isPaused) return;
-
-            let mosquito = document.createElement('div');
-            mosquito.className = `mosquito mosquito-${['normal', 'special1', 'special2'][Math.floor(Math.random() * 3)]}`;
-            mosquito.style.left = Math.random() * (gameArea.clientWidth - 40) + 'px';
-            mosquito.style.top = Math.random() * (gameArea.clientHeight - 40) + 'px';
-            mosquito.onclick = () => killMosquito(mosquito);
-            gameArea.appendChild(mosquito);
-
-            setTimeout(() => mosquito.remove(), 3000);
-        }
-
-        function killMosquito(mosquito) {
-            gameArea.removeChild(mosquito);
-            score++;
-            scoreElement.textContent = score;
-            if (score > highScore) {
-                highScore = score;
-                highScoreElement.textContent = highScore;
-                localStorage.setItem('highScore', highScore);
-            }
-        }
-
-        function updateTimer() {
-            if (!isPaused) {
-                timer--;
-                timerElement.textContent = timer;
-                if (timer <= 0) endGame();
-            }
-        }
-
-        function endGame() {
-            clearInterval(gameInterval);
-            clearInterval(mosquitoInterval);
-            clearInterval(timerInterval);
-            alert('انتهت اللعبة! نتيجتك هي: ' + score);
-        }
-
-        function togglePause() {
-            isPaused = !isPaused;
-            pauseButton.querySelector('i').classList.toggle('fa-play', isPaused);
-            pauseButton.querySelector('i').classList.toggle('fa-pause', !isPaused);
-        }
-
-        function toggleMute() {
-            isMuted = !isMuted;
-            let muteIcon = document.getElementById('muteIcon');
-            muteIcon.classList.toggle('fa-volume-up', !isMuted);
-            muteIcon.classList.toggle('fa-volume-mute', isMuted);
-            // Add logic to mute/unmute sounds if implemented
-        }
-
-        function selectSlipper(element) {
-            document.querySelectorAll('.slipper-option').forEach(el => el.classList.remove('selected'));
-            element.classList.add('selected');
-            slipper.style.backgroundImage = `url(${element.src})`;
-            slipper.style.display = 'block';
-            document.querySelector('.slipper-select-container').style.display = 'none';
-            startGame();
-        }
+function selectSlipper(element) {
+    let options = document.querySelectorAll('.slipper-option');
+    options.forEach(option => option.classList.remove('selected'));
+    element.classList.add('selected');
+    slipper.style.backgroundImage = `url(${element.src})`;
+    slipper.style.display = 'block';
+    document.querySelector('.slipper-select-container').style.display = 'none';
+    startGame();
+}
     </script>
 </body>
 </html>
