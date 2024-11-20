@@ -1,1 +1,324 @@
-<html><head><base href="/" /><meta charset="utf-8" /><title>AI Medical Assistant Chat</title><script src="https://cdn.tailwindcss.com"></script><link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet"><script>  tailwind.config = {    theme: {      extend: {        colors: {          'medical-blue': {            light: '#60a5fa',            DEFAULT: '#3b82f6',            dark: '#2563eb',          },        },        backdropBlur: {          'xs': '2px',        }      }    }  }</script><style>  .glass-effect {    background: rgba(255, 255, 255, 0.7);    backdrop-filter: blur(8px);    -webkit-backdrop-filter: blur(8px);    border: 1px solid rgba(255, 255, 255, 0.3);  }  .dark .glass-effect {    background: rgba(17, 25, 40, 0.75);    border: 1px solid rgba(255, 255, 255, 0.125);  }  :root[data-theme="light"] {    --bg-gradient: linear-gradient(120deg, #ffffff 0%, #f8f9fa 100%);  }  :root[data-theme="dark"] {    --bg-gradient: linear-gradient(120deg, #1a202c 0%, #2d3748 100%);  }  body {    background: var(--bg-gradient);    min-height: 100vh;  }</style></head><body>  <div class="min-h-screen p-4 md:p-8">    <div class="max-w-4xl mx-auto glass-effect rounded-2xl shadow-2xl p-6 md:p-8">      <div class="flex justify-between items-center mb-8">        <h1 class="flex items-center gap-3 text-2xl md:text-3xl font-bold text-medical-blue-dark dark:text-medical-blue-light">          <i class="ri-heart-pulse-fill text-3xl md:text-4xl"></i>          <span id="titleText">AI Medical Assistant</span>        </h1>        <div class="flex items-center gap-4">          <div class="relative">            <button class="language-btn bg-medical-blue hover:bg-medical-blue-dark text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all">              <i class="ri-global-line"></i>              <span id="languageBtn">Language | اللغة</span>            </button>            <div class="language-options absolute right-0 mt-2 glass-effect rounded-lg shadow-xl hidden">              <div class="language-option" data-lang="en">English</div>              <div class="language-option" data-lang="ar">عربي</div>            </div>          </div>          <button id="newChatBtn" class="bg-medical-blue hover:bg-medical-blue-dark text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all">            <i class="ri-add-line"></i>            <span>New Chat</span>          </button>          <button class="theme-toggle p-2 rounded-lg glass-effect hover:shadow-lg transition-all">            <i class="ri-sun-line dark:hidden text-xl"></i>            <i class="ri-moon-line hidden dark:block text-xl"></i>          </button>        </div>      </div>      <p class="description mb-8 text-gray-900 dark:text-gray-300" id="descriptionText">        I'm your AI Medical Assistant, designed to help you understand your symptoms and provide preliminary medical guidance.         Please note that I'm not a replacement for professional medical care - always consult a healthcare provider for serious concerns.      </p>      <div class="chat-container glass-effect rounded-xl p-4 mb-6 h-[500px] overflow-y-auto" id="chatContainer">        <!-- Chat messages will be displayed here -->      </div>      <div class="flex gap-4">        <textarea         id="userInput"         class="flex-1 glass-effect rounded-xl p-4 resize-none focus:ring-2 focus:ring-medical-blue focus:outline-none"        placeholder="Describe your symptoms here... (Press Enter to send)"        rows="3"      ></textarea>        <button         id="sendButton"         class="bg-medical-blue hover:bg-medical-blue-dark text-white px-6 rounded-xl flex items-center gap-2 transition-all"        >          <span>Send</span>          <i class="ri-send-plane-fill"></i>        </button>      </div>      <div class="loading hidden justify-center items-center p-4" id="loadingIndicator">        <div class="animate-spin rounded-full h-8 w-8 border-4 border-medical-blue border-t-transparent"></div>      </div>      <div class="mt-4 text-center">        <a         href="https://t.me/eylia5"         target="_blank"         rel="noopener noreferrer"         class="inline-flex items-center gap-2 text-medical-blue hover:text-medical-blue-dark dark:text-medical-blue-light dark:hover:text-medical-blue transition-colors"        >          <i class="ri-telegram-fill text-xl"></i>          <span>Contact me on Telegram @eylia5</span>        </a>      </div>    </div>  </div>  <script type="module">    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";    const API_KEY = "AIzaSyDABDttadOaIAwxmVj0nCjkkHArzxPIt84";    const genAI = new GoogleGenerativeAI(API_KEY);        let chatHistory = [];    const translations = {      en: {        title: "AI Medical Assistant",        description: "I'm your AI Medical Assistant, designed to help you understand your symptoms and provide preliminary medical guidance. Please note that I'm not a replacement for professional medical care - always consult a healthcare provider for serious concerns.",        newChat: "New Chat",        send: "Send",        inputPlaceholder: "Describe your symptoms here... (Press Enter to send)",        welcome: "Hello! I'm your AI Medical Assistant. I'm here to help you understand your symptoms and provide preliminary guidance. Please note that I'm not a replacement for professional medical care. How can I help you today?"      },      ar: {        title: "المساعد الطبي الذكي",        description: "أنا مساعدك الطبي الذكي، مصمم لمساعدتك على فهم أعراضك وتقديم التوجيه الطبي الأولي. يرجى ملاحظة أنني لست بديلاً عن الرعاية الطبية المهنية - استشر دائماً مقدم الرعاية الصحية للمخاوف الجدية.",        newChat: "محادثة جديدة",        send: "إرسال",        inputPlaceholder: "صف أعراضك هنا... (اضغط Enter للإرسال)",        welcome: "مرحباً! أنا مساعدك الطبي الذكي. أنا هنا لمساعدتك على فهم أعراضك وتقديم التوجيه الأولي. يرجى ملاحظة أنني لست بديلاً عن الرعاية الطبية المهنية. كيف يمكنني مساعدتك اليوم؟"      }    };    let currentLanguage = localStorage.getItem('language') || 'en';    document.documentElement.setAttribute('lang', currentLanguage);        function updateLanguage(lang) {      currentLanguage = lang;      localStorage.setItem('language', lang);      document.documentElement.setAttribute('lang', lang);            const titleText = document.getElementById('titleText');      const descriptionText = document.getElementById('descriptionText');      const newChatBtn = document.getElementById('newChatBtn');      const sendButton = document.getElementById('sendButton');      const userInput = document.getElementById('userInput');            if (titleText) titleText.textContent = translations[lang].title;      if (descriptionText) descriptionText.textContent = translations[lang].description;      if (newChatBtn) newChatBtn.querySelector('span').textContent = translations[lang].newChat;      if (sendButton) sendButton.querySelector('span').textContent = translations[lang].send;      if (userInput) userInput.placeholder = translations[lang].inputPlaceholder;            const savedHistory = localStorage.getItem('chatHistory');      if (!savedHistory && chatHistory.length === 0) {        startNewChat();      }    }        const languageBtn = document.querySelector('.language-btn');    const languageOptions = document.querySelector('.language-options');    const themeToggleBtn = document.querySelector('.theme-toggle');    if (languageBtn) {      languageBtn.addEventListener('click', () => {        if (languageOptions) {          languageOptions.classList.toggle('hidden');        }      });    }    document.querySelectorAll('.language-option').forEach(option => {      option.addEventListener('click', () => {        const lang = option.dataset.lang;        updateLanguage(lang);        if (languageOptions) {          languageOptions.classList.add('hidden');        }      });    });    document.addEventListener('click', (e) => {      if (!e.target.closest('.language-btn') && languageOptions) {        languageOptions.classList.add('hidden');      }    });    updateLanguage(currentLanguage);        const SYSTEM_PROMPT = `You are an AI Illness Diagnosis Agent designed to assist individuals in diagnosing potential medical conditions. Follow this workflow:    1. Start with a greeting and introduction 2. Collect current health status (symptoms, duration, severity, medications) 3. Gather medical history (pre-existing conditions, surgeries, allergies, family history) 4. Analyze the information provided 5. Provide a preliminary diagnosis with reasoning 6. Recommend next steps 7. Offer follow-up and gather feedback    Remember to always include a medical disclaimer and encourage users to seek professional medical help for serious conditions.`;        function setTheme(theme) {      document.documentElement.setAttribute('data-theme', theme);      localStorage.setItem('theme', theme);    }        function toggleTheme() {      const currentTheme = document.documentElement.getAttribute('data-theme');      const newTheme = currentTheme === 'light' ? 'dark' : 'light';      setTheme(newTheme);    }        const savedTheme = localStorage.getItem('theme') || 'light';    setTheme(savedTheme);        function addMessageToChat(content, isUser) {      const messageDiv = document.createElement('div');              const classes = [        'message',        'mb-4',        'px-4',        'py-3',        'rounded-xl',        'max-w-[80%]',        'animate-fade-in'      ];            if (isUser) {        classes.push('ml-auto', 'bg-medical-blue', 'text-white');      } else {        classes.push('mr-auto', 'glass-effect', 'text-black', 'dark:text-gray-200');      }            classes.forEach(className => messageDiv.classList.add(className));              messageDiv.textContent = content;            const chatContainer = document.getElementById('chatContainer');      chatContainer.appendChild(messageDiv);      chatContainer.scrollTop = chatContainer.scrollHeight;            chatHistory.push({        role: isUser ? 'user' : 'assistant',        content: content      });            localStorage.setItem('chatHistory', JSON.stringify(chatHistory));    }        function startNewChat() {      chatHistory = [];      localStorage.removeItem('chatHistory');      document.getElementById('chatContainer').innerHTML = '';      addMessageToChat(translations[currentLanguage].welcome, false);    }        async function generateContent() {      const loadingIndicator = document.getElementById('loadingIndicator');      const userInput = document.getElementById('userInput');      const userMessage = userInput.value.trim();            if (!userMessage) return;            try {        loadingIndicator.style.display = 'flex';        addMessageToChat(userMessage, true);        userInput.value = '';                const historyContext = chatHistory          .slice(-6)          .map(msg => msg.content)          .join('\n');                const model = genAI.getGenerativeModel({ model: "gemini-pro"});        const prompt = `${SYSTEM_PROMPT}\n\nPrevious conversation:\n${historyContext}\n\nUser: ${userMessage}\nAI Medical Assistant:`;        const result = await model.generateContent(prompt);        const response = await result.response;        const text = response.text();                addMessageToChat(text, false);      } catch (error) {        addMessageToChat(`Error: ${error.message}`, false);      } finally {        loadingIndicator.style.display = 'none';      }    }        window.addEventListener('load', () => {      const savedHistory = localStorage.getItem('chatHistory');      if (savedHistory) {        chatHistory = JSON.parse(savedHistory);        chatHistory.forEach(msg => {          addMessageToChat(msg.content, msg.role === 'user');        });      } else {        addMessageToChat(translations[currentLanguage].welcome, false);      }    });        document.getElementById('sendButton')?.addEventListener('click', generateContent);    const userInput = document.getElementById('userInput');    if (userInput) {      userInput.addEventListener('keypress', (e) => {        if (e.key === 'Enter' && !e.shiftKey) {          e.preventDefault();          generateContent();        }      });    }    document.getElementById('newChatBtn')?.addEventListener('click', startNewChat);    if (themeToggleBtn) {      themeToggleBtn.addEventListener('click', toggleTheme);    }  </script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/" />
+  <meta charset="utf-8" />
+  <title>AI Medical Assistant Chat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'medical-blue': {
+              light: '#60a5fa',
+              DEFAULT: '#3b82f6',
+              dark: '#2563eb',
+            },
+          },
+          backdropBlur: {
+            'xs': '2px',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .dark .glass-effect {
+      background: rgba(17, 25, 40, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.125);
+    }
+    :root[data-theme="light"] {
+      --bg-gradient: linear-gradient(120deg, #ffffff 0%, #f8f9fa 100%);
+    }
+    :root[data-theme="dark"] {
+      --bg-gradient: linear-gradient(120deg, #1a202c 0%, #2d3748 100%);
+    }
+    body {
+      background: var(--bg-gradient);
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div class="min-h-screen p-4 md:p-8">
+    <div class="max-w-4xl mx-auto glass-effect rounded-2xl shadow-2xl p-6 md:p-8">
+      <div class="flex justify-between items-center mb-8">
+        <h1 class="flex items-center gap-3 text-2xl md:text-3xl font-bold text-medical-blue-dark dark:text-medical-blue-light">
+          <i class="ri-heart-pulse-fill text-3xl md:text-4xl"></i>
+          <span id="titleText">AI Medical Assistant</span>
+        </h1>
+        <div class="flex items-center gap-4">
+          <div class="relative">
+            <button class="language-btn bg-medical-blue hover:bg-medical-blue-dark text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
+              <i class="ri-global-line"></i>
+              <span id="languageBtn">Language | اللغة</span>
+            </button>
+            <div class="language-options absolute right-0 mt-2 glass-effect rounded-lg shadow-xl hidden">
+              <div class="language-option" data-lang="en">English</div>
+              <div class="language-option" data-lang="ar">عربي</div>
+            </div>
+          </div>
+          <button id="newChatBtn" class="bg-medical-blue hover:bg-medical-blue-dark text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
+            <i class="ri-add-line"></i>
+            <span>New Chat</span>
+          </button>
+          <button class="theme-toggle p-2 rounded-lg glass-effect hover:shadow-lg transition-all">
+            <i class="ri-sun-line dark:hidden text-xl"></i>
+            <i class="ri-moon-line hidden dark:block text-xl"></i>
+          </button>
+        </div>
+      </div>
+      <p class="description mb-8 text-gray-900 dark:text-gray-300" id="descriptionText">
+        I'm your AI Medical Assistant, designed to help you understand your symptoms and provide preliminary medical guidance.
+        Please note that I'm not a replacement for professional medical care - always consult a healthcare provider for serious concerns.
+      </p>
+      <div class="chat-container glass-effect rounded-xl p-4 mb-6 h-[500px] overflow-y-auto" id="chatContainer">
+        <!-- Chat messages will be displayed here -->
+      </div>
+      <div class="flex gap-4">
+        <textarea
+          id="userInput"
+          class="flex-1 glass-effect rounded-xl p-4 resize-none focus:ring-2 focus:ring-medical-blue focus:outline-none"
+          placeholder="Describe your symptoms here... (Press Enter to send)"
+          rows="3"
+        ></textarea>
+        <button
+          id="sendButton"
+          class="bg-medical-blue hover:bg-medical-blue-dark text-white px-6 rounded-xl flex items-center gap-2 transition-all"
+        >
+          <span>Send</span>
+          <i class="ri-send-plane-fill"></i>
+        </button>
+      </div>
+      <div class="loading hidden justify-center items-center p-4" id="loadingIndicator">
+        <div class="animate-spin rounded-full h-8 w-8 border-4 border-medical-blue border-t-transparent"></div>
+      </div>
+      <div class="mt-4 text-center">
+        <a
+          href="https://t.me/eylia5"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 text-medical-blue hover:text-medical-blue-dark dark:text-medical-blue-light dark:hover:text-medical-blue transition-colors"
+        >
+          <i class="ri-telegram-fill text-xl"></i>
+          <span>Contact me on Telegram @eylia5</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  <script type="module">
+    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+    const API_KEY = "AIzaSyDABDttadOaIAwxmVj0nCjkkHArzxPIt84";
+    const genAI = new GoogleGenerativeAI(API_KEY);
+
+    let chatHistory = [];
+    const translations = {
+      en: {
+        title: "AI Medical Assistant",
+        description: "I'm your AI Medical Assistant, designed to help you understand your symptoms and provide preliminary medical guidance. Please note that I'm not a replacement for professional medical care - always consult a healthcare provider for serious concerns.",
+        newChat: "New Chat",
+        send: "Send",
+        inputPlaceholder: "Describe your symptoms here... (Press Enter to send)",
+        welcome: "Hello! I'm your AI Medical Assistant. I'm here to help you understand your symptoms and provide preliminary guidance. Please note that I'm not a replacement for professional medical care. How can I help you today?"
+      },
+      ar: {
+        title: "المساعد الطبي الذكي",
+        description: "أنا مساعدك الطبي الذكي، مصمم لمساعدتك على فهم أعراضك وتقديم التوجيه الطبي الأولي. يرجى ملاحظة أنني لست بديلاً عن الرعاية الطبية المهنية - استشر دائماً مقدم الرعاية الصحية للمخاوف الجدية.",
+        newChat: "محادثة جديدة",
+        send: "إرسال",
+        inputPlaceholder: "صف أعراضك هنا... (اضغط Enter للإرسال)",
+        welcome: "مرحباً! أنا مساعدك الطبي الذكي. أنا هنا لمساعدتك على فهم أعراضك وتقديم التوجيه الأولي. يرجى ملاحظة أنني لست بديلاً عن الرعاية الطبية المهنية. كيف يمكنني مساعدتك اليوم؟"
+      }
+    };
+
+    let currentLanguage = localStorage.getItem('language') || 'en';
+    document.documentElement.setAttribute('lang', currentLanguage);
+
+    function updateLanguage(lang) {
+      currentLanguage = lang;
+      localStorage.setItem('language', lang);
+      document.documentElement.setAttribute('lang', lang);
+
+      const titleText = document.getElementById('titleText');
+      const descriptionText = document.getElementById('descriptionText');
+      const newChatBtn = document.getElementById('newChatBtn');
+      const sendButton = document.getElementById('sendButton');
+      const userInput = document.getElementById('userInput');
+
+      if (titleText) titleText.textContent = translations[lang].title;
+      if (descriptionText) descriptionText.textContent = translations[lang].description;
+      if (newChatBtn) newChatBtn.querySelector('span').textContent = translations[lang].newChat;
+      if (sendButton) sendButton.querySelector('span').textContent = translations[lang].send;
+      if (userInput) userInput.placeholder = translations[lang].inputPlaceholder;
+
+      const savedHistory = localStorage.getItem('chatHistory');
+      if (!savedHistory && chatHistory.length === 0) {
+        startNewChat();
+      }
+    }
+
+    const languageBtn = document.querySelector('.language-btn');
+    const languageOptions = document.querySelector('.language-options');
+    const themeToggleBtn = document.querySelector('.theme-toggle');
+
+    if (languageBtn) {
+      languageBtn.addEventListener('click', () => {
+        if (languageOptions) {
+          languageOptions.classList.toggle('hidden');
+        }
+      });
+    }
+
+    document.querySelectorAll('.language-option').forEach(option => {
+      option.addEventListener('click', () => {
+        const lang = option.dataset.lang;
+        updateLanguage(lang);
+        if (languageOptions) {
+          languageOptions.classList.add('hidden');
+        }
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.language-btn') && languageOptions) {
+        languageOptions.classList.add('hidden');
+      }
+    });
+
+    updateLanguage(currentLanguage);
+
+    const SYSTEM_PROMPT = `You are an AI Illness Diagnosis Agent designed to assist individuals in diagnosing potential medical conditions. Follow this workflow:
+    1. Start with a greeting and introduction
+    2. Collect current health status (symptoms, duration, severity, medications)
+    3. Gather medical history (pre-existing conditions, surgeries, allergies, family history)
+    4. Analyze the information provided
+    5. Provide a preliminary diagnosis with reasoning
+    6. Recommend next steps
+    7. Offer follow-up and gather feedback
+    Remember to always include a medical disclaimer and encourage users to seek professional medical help for serious conditions.`;
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      setTheme(newTheme);
+    }
+
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+
+    function addMessageToChat(content, isUser) {
+      const messageDiv = document.createElement('div');
+      const classes = [
+        'message',
+        'mb-4',
+        'px-4',
+        'py-3',
+        'rounded-xl',
+        'max-w-[80%]',
+        'animate-fade-in'
+      ];
+
+      if (isUser) {
+        classes.push('ml-auto', 'bg-medical-blue', 'text-white');
+      } else {
+        classes.push('mr-auto', 'glass-effect', 'text-black', 'dark:text-gray-200');
+      }
+
+      classes.forEach(className => messageDiv.classList.add(className));
+      messageDiv.textContent = content;
+
+      const chatContainer = document.getElementById('chatContainer');
+      chatContainer.appendChild(messageDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      chatHistory.push({
+        role: isUser ? 'user' : 'assistant',
+        content: content
+      });
+
+      localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+    }
+
+    function startNewChat() {
+      chatHistory = [];
+      localStorage.removeItem('chatHistory');
+      document.getElementById('chatContainer').innerHTML = '';
+      addMessageToChat(translations[currentLanguage].welcome, false);
+    }
+
+    async function generateContent() {
+      const loadingIndicator = document.getElementById('loadingIndicator');
+      const userInput = document.getElementById('userInput');
+      const userMessage = userInput.value.trim();
+
+      if (!userMessage) return;
+
+      try {
+        loadingIndicator.style.display = 'flex';
+        addMessageToChat(userMessage, true);
+        userInput.value = '';
+
+        const historyContext = chatHistory
+          .slice(-6)
+          .map(msg => msg.content)
+          .join('\n');
+
+        const model = genAI.getGenerativeModel({ model: "gemini-pro"});
+        const prompt = `${SYSTEM_PROMPT}\n\nPrevious conversation:\n${historyContext}\n\nUser: ${userMessage}\nAI Medical Assistant:`;
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+
+        addMessageToChat(text, false);
+      } catch (error) {
+        addMessageToChat(`Error: ${error.message}`, false);
+      } finally {
+        loadingIndicator.style.display = 'none';
+      }
+    }
+
+    window.addEventListener('load', () => {
+      const savedHistory = localStorage.getItem('chatHistory');
+      if (savedHistory) {
+        chatHistory = JSON.parse(savedHistory);
+        chatHistory.forEach(msg => {
+          addMessageToChat(msg.content, msg.role === 'user');
+        });
+      } else {
+        addMessageToChat(translations[currentLanguage].welcome, false);
+      }
+    });
+
+    document.getElementById('sendButton')?.addEventListener('click', generateContent);
+
+    const userInputElement = document.getElementById('userInput');
+    if (userInputElement) {
+      userInputElement.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          generateContent();
+        }
+      });
+    }
+
+    document.getElementById('newChatBtn')?.addEventListener('click', startNewChat);
+
+    if (themeToggleBtn) {
+      themeToggleBtn.addEventListener('click', toggleTheme);
+    }
+  </script>
+</body>
+</html>
