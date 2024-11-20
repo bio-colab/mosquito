@@ -4,39 +4,57 @@
   <base href="/" />
   <meta charset="utf-8" />
   <title>AI Medical Assistant Chat</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"></script>
+  <script src="https://unpkg.com/@mui/material@latest/umd/material-ui.development.js"></script>
+  <script src="https://unpkg.com/@emotion/react@latest/umd/emotion-react.development.js"></script>
+  <script src="https://unpkg.com/@emotion/styled@latest/umd/emotion-styled.development.js"></script>
   <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'medical-blue': {
-              light: '#60a5fa',
-              DEFAULT: '#3b82f6',
-              dark: '#2563eb',
-            },
-            'dark-maroon': '#800000',
-            'light-maroon': '#ffb3ba',
-          },
-          backdropBlur: {
-            'xs': '2px',
-          }
-        }
-      }
-    }
+    const { createTheme, ThemeProvider, CssBaseline } = MaterialUI;
+    const { styled } = window['@emotion/styled'];
+
+    const theme = createTheme({
+      palette: {
+        primary: {
+          main: '#3b82f6',
+          light: '#60a5fa',
+          dark: '#2563eb',
+        },
+        secondary: {
+          main: '#800000',
+        },
+        background: {
+          default: '#ffffff',
+          paper: '#f8f9fa',
+        },
+        text: {
+          primary: '#333333',
+          secondary: '#800000',
+        },
+      },
+      typography: {
+        fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      },
+    });
+
+    const GlassEffect = styled('div')({
+      background: 'rgba(255, 255, 255, 0.7)',
+      backdropFilter: 'blur(8px)',
+      WebkitBackdropFilter: 'blur(8px)',
+      border: '1px solid rgba(255, 255, 255, 0.3)',
+      borderRadius: '16px',
+      padding: '16px',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    });
+
+    const DarkGlassEffect = styled('div')({
+      background: 'rgba(17, 25, 40, 0.75)',
+      border: '1px solid rgba(255, 255, 255, 0.125)',
+      borderRadius: '16px',
+      padding: '16px',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    });
   </script>
   <style>
-    .glass-effect {
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-    .dark .glass-effect {
-      background: rgba(17, 25, 40, 0.75);
-      border: 1px solid rgba(255, 255, 255, 0.125);
-    }
     :root[data-theme="light"] {
       --bg-gradient: linear-gradient(120deg, #ffffff 0%, #f8f9fa 100%);
     }
@@ -50,78 +68,27 @@
   </style>
 </head>
 <body>
-  <div class="min-h-screen p-4 md:p-8">
-    <div class="max-w-4xl mx-auto glass-effect rounded-2xl shadow-2xl p-6 md:p-8">
-      <div class="flex justify-between items-center mb-8">
-        <h1 class="flex items-center gap-3 text-2xl md:text-3xl font-bold text-medical-blue-dark dark:text-medical-blue-light">
-          <i class="ri-heart-pulse-fill text-3xl md:text-4xl"></i>
-          <span id="titleText">AI Medical Assistant</span>
-        </h1>
-        <div class="flex items-center gap-4">
-          <div class="relative">
-            <button class="language-btn bg-medical-blue hover:bg-medical-blue-dark text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
-              <i class="ri-global-line"></i>
-              <span id="languageBtn">Language | اللغة</span>
-            </button>
-            <div class="language-options absolute right-0 mt-2 glass-effect rounded-lg shadow-xl hidden">
-              <div class="language-option" data-lang="en">English</div>
-              <div class="language-option" data-lang="ar">عربي</div>
-            </div>
-          </div>
-          <button id="newChatBtn" class="bg-medical-blue hover:bg-medical-blue-dark text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
-            <i class="ri-add-line"></i>
-            <span>New Chat</span>
-          </button>
-          <button class="theme-toggle p-2 rounded-lg glass-effect hover:shadow-lg transition-all">
-            <i class="ri-sun-line dark:hidden text-xl"></i>
-            <i class="ri-moon-line hidden dark:block text-xl"></i>
-          </button>
-        </div>
-      </div>
-      <p class="description mb-8 text-dark-maroon dark:text-white" id="descriptionText">
-        I'm your AI Medical Assistant, designed to help you understand your symptoms and provide preliminary medical guidance.
-        Please note that I'm not a replacement for professional medical care - always consult a healthcare provider for serious concerns.
-      </p>
-      <div class="chat-container glass-effect rounded-xl p-4 mb-6 h-[500px] overflow-y-auto" id="chatContainer">
-        <!-- Chat messages will be displayed here -->
-      </div>
-      <div class="flex gap-4">
-        <textarea
-          id="userInput"
-          class="flex-1 glass-effect rounded-xl p-4 resize-none focus:ring-2 focus:ring-medical-blue focus:outline-none"
-          placeholder="Describe your symptoms here... (Press Enter to send)"
-          rows="3"
-        ></textarea>
-        <button
-          id="sendButton"
-          class="bg-medical-blue hover:bg-medical-blue-dark text-white px-6 rounded-xl flex items-center gap-2 transition-all"
-        >
-          <span>Send</span>
-          <i class="ri-send-plane-fill"></i>
-        </button>
-      </div>
-      <div class="loading hidden justify-center items-center p-4" id="loadingIndicator">
-        <div class="animate-spin rounded-full h-8 w-8 border-4 border-medical-blue border-t-transparent"></div>
-      </div>
-      <div class="mt-4 text-center">
-        <a
-          href="https://t.me/eylia5"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 text-medical-blue hover:text-medical-blue-dark dark:text-medical-blue-light dark:hover:text-medical-blue transition-colors"
-        >
-          <i class="ri-telegram-fill text-xl"></i>
-          <span>Contact me on Telegram @eylia5</span>
-        </a>
-      </div>
-    </div>
-  </div>
+  <div id="root"></div>
   <script type="module">
+    import React from 'https://esm.sh/react';
+    import ReactDOM from 'https://esm.sh/react-dom';
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+    import {
+      Container,
+      Box,
+      Typography,
+      Button,
+      TextField,
+      Menu,
+      MenuItem,
+      IconButton,
+      CircularProgress,
+      Paper,
+    } from 'https://esm.sh/@mui/material';
+
     const API_KEY = "AIzaSyDABDttadOaIAwxmVj0nCjkkHArzxPIt84";
     const genAI = new GoogleGenerativeAI(API_KEY);
 
-    let chatHistory = [];
     const translations = {
       en: {
         title: "AI Medical Assistant",
@@ -141,63 +108,50 @@
       }
     };
 
-    let currentLanguage = localStorage.getItem('language') || 'en';
-    document.documentElement.setAttribute('lang', currentLanguage);
+    const App = () => {
+      const [chatHistory, setChatHistory] = React.useState([]);
+      const [currentLanguage, setCurrentLanguage] = React.useState(localStorage.getItem('language') || 'en');
+      const [anchorEl, setAnchorEl] = React.useState(null);
+      const [loading, setLoading] = React.useState(false);
 
-    function updateLanguage(lang) {
-      currentLanguage = lang;
-      localStorage.setItem('language', lang);
-      document.documentElement.setAttribute('lang', lang);
+      const handleLanguageChange = (lang) => {
+        setCurrentLanguage(lang);
+        localStorage.setItem('language', lang);
+      };
 
-      const titleText = document.getElementById('titleText');
-      const descriptionText = document.getElementById('descriptionText');
-      const newChatBtn = document.getElementById('newChatBtn');
-      const sendButton = document.getElementById('sendButton');
-      const userInput = document.getElementById('userInput');
+      const handleLanguageMenuOpen = (event) => {
+        setAnchorEl(event.currentTarget);
+      };
 
-      if (titleText) titleText.textContent = translations[lang].title;
-      if (descriptionText) descriptionText.textContent = translations[lang].description;
-      if (newChatBtn) newChatBtn.querySelector('span').textContent = translations[lang].newChat;
-      if (sendButton) sendButton.querySelector('span').textContent = translations[lang].send;
-      if (userInput) userInput.placeholder = translations[lang].inputPlaceholder;
+      const handleLanguageMenuClose = () => {
+        setAnchorEl(null);
+      };
 
-      const savedHistory = localStorage.getItem('chatHistory');
-      if (!savedHistory && chatHistory.length === 0) {
-        startNewChat();
-      }
-    }
+      const handleNewChat = () => {
+        setChatHistory([]);
+        localStorage.removeItem('chatHistory');
+      };
 
-    const languageBtn = document.querySelector('.language-btn');
-    const languageOptions = document.querySelector('.language-options');
-    const themeToggleBtn = document.querySelector('.theme-toggle');
+      const handleSendMessage = async () => {
+        const userInput = document.getElementById('userInput').value.trim();
+        if (!userInput) return;
 
-    if (languageBtn) {
-      languageBtn.addEventListener('click', () => {
-        if (languageOptions) {
-          languageOptions.classList.toggle('hidden');
-        }
-      });
-    }
+        setLoading(true);
+        setChatHistory([...chatHistory, { role: 'user', content: userInput }]);
+        document.getElementById('userInput').value = '';
 
-    document.querySelectorAll('.language-option').forEach(option => {
-      option.addEventListener('click', () => {
-        const lang = option.dataset.lang;
-        updateLanguage(lang);
-        if (languageOptions) {
-          languageOptions.classList.add('hidden');
-        }
-      });
-    });
+        const historyContext = chatHistory.slice(-6).map(msg => msg.content).join('\n');
+        const model = genAI.getGenerativeModel({ model: "gemini-pro"});
+        const prompt = `${SYSTEM_PROMPT}\n\nPrevious conversation:\n${historyContext}\n\nUser: ${userInput}\nAI Medical Assistant:`;
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
 
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.language-btn') && languageOptions) {
-        languageOptions.classList.add('hidden');
-      }
-    });
+        setChatHistory([...chatHistory, { role: 'assistant', content: text }]);
+        setLoading(false);
+      };
 
-    updateLanguage(currentLanguage);
-
-    const SYSTEM_PROMPT = `You are an AI Illness Diagnosis Agent designed to assist individuals in diagnosing potential medical conditions. Follow this workflow:
+      const SYSTEM_PROMPT = `You are an AI Illness Diagnosis Agent designed to assist individuals in diagnosing potential medical conditions. Follow this workflow:
     1. Start with a greeting and introduction
     2. Collect current health status (symptoms, duration, severity, medications)
     3. Gather medical history (pre-existing conditions, surgeries, allergies, family history)
@@ -207,120 +161,122 @@
     7. Offer follow-up and gather feedback
     Remember to always include a medical disclaimer and encourage users to seek professional medical help for serious conditions.`;
 
-    function setTheme(theme) {
-      document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('theme', theme);
-    }
-
-    function toggleTheme() {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-      setTheme(newTheme);
-    }
-
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    setTheme(savedTheme);
-
-    function addMessageToChat(content, isUser) {
-      const messageDiv = document.createElement('div');
-      const classes = [
-        'message',
-        'mb-4',
-        'px-4',
-        'py-3',
-        'rounded-xl',
-        'max-w-[80%]',
-        'animate-fade-in'
-      ];
-
-      if (isUser) {
-        classes.push('ml-auto', 'bg-medical-blue', 'text-white');
-      } else {
-        classes.push('mr-auto', 'glass-effect', 'text-black', 'dark:text-gray-200');
-      }
-
-      classes.forEach(className => messageDiv.classList.add(className));
-      messageDiv.textContent = content;
-
-      const chatContainer = document.getElementById('chatContainer');
-      chatContainer.appendChild(messageDiv);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-
-      chatHistory.push({
-        role: isUser ? 'user' : 'assistant',
-        content: content
-      });
-
-      localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-    }
-
-    function startNewChat() {
-      chatHistory = [];
-      localStorage.removeItem('chatHistory');
-      document.getElementById('chatContainer').innerHTML = '';
-      addMessageToChat(translations[currentLanguage].welcome, false);
-    }
-
-    async function generateContent() {
-      const loadingIndicator = document.getElementById('loadingIndicator');
-      const userInput = document.getElementById('userInput');
-      const userMessage = userInput.value.trim();
-
-      if (!userMessage) return;
-
-      try {
-        loadingIndicator.style.display = 'flex';
-        addMessageToChat(userMessage, true);
-        userInput.value = '';
-
-        const historyContext = chatHistory
-          .slice(-6)
-          .map(msg => msg.content)
-          .join('\n');
-
-        const model = genAI.getGenerativeModel({ model: "gemini-pro"});
-        const prompt = `${SYSTEM_PROMPT}\n\nPrevious conversation:\n${historyContext}\n\nUser: ${userMessage}\nAI Medical Assistant:`;
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-
-        addMessageToChat(text, false);
-      } catch (error) {
-        addMessageToChat(`Error: ${error.message}`, false);
-      } finally {
-        loadingIndicator.style.display = 'none';
-      }
-    }
-
-    window.addEventListener('load', () => {
-      const savedHistory = localStorage.getItem('chatHistory');
-      if (savedHistory) {
-        chatHistory = JSON.parse(savedHistory);
-        chatHistory.forEach(msg => {
-          addMessageToChat(msg.content, msg.role === 'user');
-        });
-      } else {
-        addMessageToChat(translations[currentLanguage].welcome, false);
-      }
-    });
-
-    document.getElementById('sendButton')?.addEventListener('click', generateContent);
-
-    const userInputElement = document.getElementById('userInput');
-    if (userInputElement) {
-      userInputElement.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          generateContent();
+      React.useEffect(() => {
+        const savedHistory = localStorage.getItem('chatHistory');
+        if (savedHistory) {
+          setChatHistory(JSON.parse(savedHistory));
+        } else {
+          setChatHistory([{ role: 'assistant', content: translations[currentLanguage].welcome }]);
         }
-      });
-    }
+      }, [currentLanguage]);
 
-    document.getElementById('newChatBtn')?.addEventListener('click', startNewChat);
+      return (
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Container maxWidth="md" sx={{ p: 4 }}>
+            <Paper elevation={3} sx={{ p: 3, borderRadius: 4 }}>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+                <Typography variant="h4" component="h1" sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <i className="ri-heart-pulse-fill" style={{ fontSize: '2rem' }}></i>
+                  <span>{translations[currentLanguage].title}</span>
+                </Typography>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<i className="ri-global-line"></i>}
+                    onClick={handleLanguageMenuOpen}
+                  >
+                    {translations[currentLanguage].languageBtn}
+                  </Button>
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={handleLanguageMenuClose}
+                  >
+                    <MenuItem onClick={() => handleLanguageChange('en')}>English</MenuItem>
+                    <MenuItem onClick={() => handleLanguageChange('ar')}>عربي</MenuItem>
+                  </Menu>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<i className="ri-add-line"></i>}
+                    onClick={handleNewChat}
+                  >
+                    {translations[currentLanguage].newChat}
+                  </Button>
+                  <IconButton onClick={() => document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light')}>
+                    {document.documentElement.getAttribute('data-theme') === 'light' ? <i className="ri-sun-line"></i> : <i className="ri-moon-line"></i>}
+                  </IconButton>
+                </Box>
+              </Box>
+              <Typography variant="body1" sx={{ mb: 4 }}>
+                {translations[currentLanguage].description}
+              </Typography>
+              <Paper elevation={3} sx={{ p: 2, borderRadius: 2, mb: 2, maxHeight: '500px', overflowY: 'auto' }}>
+                {chatHistory.map((msg, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      p: 2,
+                      mb: 2,
+                      borderRadius: 2,
+                      backgroundColor: msg.role === 'user' ? 'primary.main' : 'background.paper',
+                      color: msg.role === 'user' ? 'white' : 'text.primary',
+                      alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                    }}
+                  >
+                    {msg.content}
+                  </Box>
+                ))}
+              </Paper>
+              <Box display="flex" gap={2}>
+                <TextField
+                  id="userInput"
+                  variant="outlined"
+                  fullWidth
+                  multiline
+                  rows={3}
+                  placeholder={translations[currentLanguage].inputPlaceholder}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                />
+                <Button
+                  variant="contained"
+                  color="primary"
+                  endIcon={<i className="ri-send-plane-fill"></i>}
+                  onClick={handleSendMessage}
+                >
+                  {translations[currentLanguage].send}
+                </Button>
+              </Box>
+              {loading && (
+                <Box display="flex" justifyContent="center" alignItems="center" mt={2}>
+                  <CircularProgress />
+                </Box>
+              )}
+              <Box textAlign="center" mt={2}>
+                <a
+                  href="https://t.me/eylia5"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: 'none', color: 'inherit' }}
+                >
+                  <i className="ri-telegram-fill" style={{ fontSize: '1.5rem', verticalAlign: 'middle' }}></i>
+                  <span style={{ verticalAlign: 'middle', marginLeft: '8px' }}>{translations[currentLanguage].contact}</span>
+                </a>
+              </Box>
+            </Paper>
+          </Container>
+        </ThemeProvider>
+      );
+    };
 
-    if (themeToggleBtn) {
-      themeToggleBtn.addEventListener('click', toggleTheme);
-    }
+    ReactDOM.render(<App />, document.getElementById('root'));
   </script>
 </body>
 </html>
