@@ -1,282 +1,259 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-  <base href="/" />
-  <meta charset="utf-8" />
-  <title>AI Medical Assistant Chat</title>
-  <script src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"></script>
-  <script src="https://unpkg.com/@mui/material@latest/umd/material-ui.development.js"></script>
-  <script src="https://unpkg.com/@emotion/react@latest/umd/emotion-react.development.js"></script>
-  <script src="https://unpkg.com/@emotion/styled@latest/umd/emotion-styled.development.js"></script>
-  <script>
-    const { createTheme, ThemeProvider, CssBaseline } = MaterialUI;
-    const { styled } = window['@emotion/styled'];
-
-    const theme = createTheme({
-      palette: {
-        primary: {
-          main: '#3b82f6',
-          light: '#60a5fa',
-          dark: '#2563eb',
-        },
-        secondary: {
-          main: '#800000',
-        },
-        background: {
-          default: '#ffffff',
-          paper: '#f8f9fa',
-        },
-        text: {
-          primary: '#333333',
-          secondary: '#8b0000',
-        },
-      },
-      typography: {
-        fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-      },
-    });
-
-    const GlassEffect = styled('div')({
-      background: 'rgba(255, 255, 255, 0.7)',
-      backdropFilter: 'blur(8px)',
-      WebkitBackdropFilter: 'blur(8px)',
-      border: '1px solid rgba(255, 255, 255, 0.3)',
-      borderRadius: '16px',
-      padding: '16px',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    });
-
-    const DarkGlassEffect = styled('div')({
-      background: 'rgba(17, 25, 40, 0.75)',
-      border: '1px solid rgba(255, 255, 255, 0.125)',
-      borderRadius: '16px',
-      padding: '16px',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    });
-  </script>
-  <style>
-    :root[data-theme="light"] {
-      --bg-gradient: linear-gradient(120deg, #ffffff 0%, #f8f9fa 100%);
-    }
-    :root[data-theme="dark"] {
-      --bg-gradient: linear-gradient(120deg, #1a202c 0%, #2d3748 100%);
-    }
-    body {
-      background: var(--bg-gradient);
-      min-height: 100vh;
-    }
-  </style>
-</head>
-<body>
-  <div id="root"></div>
-  <script type="module">
-    import React from 'https://esm.sh/react';
-    import ReactDOM from 'https://esm.sh/react-dom';
-    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
-    import {
-      Container,
-      Box,
-      Typography,
-      Button,
-      TextField,
-      Menu,
-      MenuItem,
-      IconButton,
-      CircularProgress,
-      Paper,
-    } from 'https://esm.sh/@mui/material';
-
-    const API_KEY = "AIzaSyDABDttadOaIAwxmVj0nCjkkHArzxPIt84";
-    const genAI = new GoogleGenerativeAI(API_KEY);
-
-    const translations = {
-      en: {
-        title: "AI Medical Assistant",
-        description: "I'm your AI Medical Assistant, designed to help you understand your symptoms and provide preliminary medical guidance. Please note that I'm not a replacement for professional medical care - always consult a healthcare provider for serious concerns.",
-        newChat: "New Chat",
-        send: "Send",
-        inputPlaceholder: "Describe your symptoms here... (Press Enter to send)",
-        welcome: "Hello! I'm your AI Medical Assistant. I'm here to help you understand your symptoms and provide preliminary guidance. Please note that I'm not a replacement for professional medical care. How can I help you today?"
-      },
-      ar: {
-        title: "المساعد الطبي الذكي",
-        description: "أنا مساعدك الطبي الذكي، مصمم لمساعدتك على فهم أعراضك وتقديم التوجيه الطبي الأولي. يرجى ملاحظة أنني لست بديلاً عن الرعاية الطبية المهنية - استشر دائماً مقدم الرعاية الصحية للمخاوف الجدية.",
-        newChat: "محادثة جديدة",
-        send: "إرسال",
-        inputPlaceholder: "صف أعراضك هنا... (اضغط Enter للإرسال)",
-        welcome: "مرحباً! أنا مساعدك الطبي الذكي. أنا هنا لمساعدتك على فهم أعراضك وتقديم التوجيه الأولي. يرجى ملاحظة أنني لست بديلاً عن الرعاية الطبية المهنية. كيف يمكنني مساعدتك اليوم؟"
-      }
-    };
-
-    const App = () => {
-      const [chatHistory, setChatHistory] = React.useState([]);
-      const [currentLanguage, setCurrentLanguage] = React.useState(localStorage.getItem('language') || 'en');
-      const [anchorEl, setAnchorEl] = React.useState(null);
-      const [loading, setLoading] = React.useState(false);
-
-      const handleLanguageChange = (lang) => {
-        setCurrentLanguage(lang);
-        localStorage.setItem('language', lang);
-      };
-
-      const handleLanguageMenuOpen = (event) => {
-        setAnchorEl(event.currentTarget);
-      };
-
-      const handleLanguageMenuClose = () => {
-        setAnchorEl(null);
-      };
-
-      const handleNewChat = () => {
-        setChatHistory([]);
-        localStorage.removeItem('chatHistory');
-      };
-
-      const handleSendMessage = async () => {
-        const userInput = document.getElementById('userInput').value.trim();
-        if (!userInput) return;
-
-        setLoading(true);
-        setChatHistory([...chatHistory, { role: 'user', content: userInput }]);
-        document.getElementById('userInput').value = '';
-
-        const historyContext = chatHistory.slice(-6).map(msg => msg.content).join('\n');
-        const model = genAI.getGenerativeModel({ model: "gemini-pro"});
-        const prompt = `${SYSTEM_PROMPT}\n\nPrevious conversation:\n${historyContext}\n\nUser: ${userInput}\nAI Medical Assistant:`;
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-
-        setChatHistory([...chatHistory, { role: 'assistant', content: text }]);
-        setLoading(false);
-      };
-
-      const SYSTEM_PROMPT = `You are an AI Illness Diagnosis Agent designed to assist individuals in diagnosing potential medical conditions. Follow this workflow:
-    1. Start with a greeting and introduction
-    2. Collect current health status (symptoms, duration, severity, medications)
-    3. Gather medical history (pre-existing conditions, surgeries, allergies, family history)
-    4. Analyze the information provided
-    5. Provide a preliminary diagnosis with reasoning
-    6. Recommend next steps
-    7. Offer follow-up and gather feedback
-    Remember to always include a medical disclaimer and encourage users to seek professional medical help for serious conditions.`;
-
-      React.useEffect(() => {
-        const savedHistory = localStorage.getItem('chatHistory');
-        if (savedHistory) {
-          setChatHistory(JSON.parse(savedHistory));
-        } else {
-          setChatHistory([{ role: 'assistant', content: translations[currentLanguage].welcome }]);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>امتحان حقوق الإنسان</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
         }
-      }, [currentLanguage]);
+        .section-content.active {
+            max-height: 2000px;
+            transition: max-height 0.5s ease-in;
+        }
+        .menu-item:hover {
+            background: linear-gradient(to left, #EFF6FF, #EEF2FF);
+        }
+        .sub-item {
+            border-right: 2px solid #E5E7EB;
+            margin-right: 1rem;
+            padding-right: 1rem;
+        }
+        .chevron-icon {
+            transition: transform 0.3s ease;
+        }
+        .rotate-icon {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h1 class="text-3xl font-bold text-center mb-2 text-gray-800">امتحان حقوق الإنسان</h1>
+            <p class="text-center text-gray-600 mb-8">دليل شامل للحقوق والضمانات</p>
 
-      return (
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <Container maxWidth="md" sx={{ p: 4 }}>
-            <Paper elevation={3} sx={{ p: 3, borderRadius: 4 }}>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-                <Typography variant="h4" component="h1" sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <i className="ri-heart-pulse-fill" style={{ fontSize: '2rem' }}></i>
-                  <span>{translations[currentLanguage].title}</span>
-                </Typography>
-                <Box display="flex" alignItems="center" gap={2}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<i className="ri-global-line"></i>}
-                    onClick={handleLanguageMenuOpen}
-                  >
-                    {translations[currentLanguage].languageBtn}
-                  </Button>
-                  <Menu
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={handleLanguageMenuClose}
-                  >
-                    <MenuItem onClick={() => handleLanguageChange('en')}>English</MenuItem>
-                    <MenuItem onClick={() => handleLanguageChange('ar')}>عربي</MenuItem>
-                  </Menu>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<i className="ri-add-line"></i>}
-                    onClick={handleNewChat}
-                  >
-                    {translations[currentLanguage].newChat}
-                  </Button>
-                  <IconButton onClick={() => document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light')}>
-                    {document.documentElement.getAttribute('data-theme') === 'light' ? <i className="ri-sun-line"></i> : <i className="ri-moon-line"></i>}
-                  </IconButton>
-                </Box>
-              </Box>
-              <Typography variant="body1" sx={{ mb: 4 }}>
-                {translations[currentLanguage].description}
-              </Typography>
-              <Paper elevation={3} sx={{ p: 2, borderRadius: 2, mb: 2, maxHeight: '500px', overflowY: 'auto' }}>
-                {chatHistory.map((msg, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      p: 2,
-                      mb: 2,
-                      borderRadius: 2,
-                      backgroundColor: msg.role === 'user' ? 'primary.main' : 'background.paper',
-                      color: msg.role === 'user' ? 'white' : 'text.primary',
-                      alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                    }}
-                  >
-                    {msg.content}
-                  </Box>
-                ))}
-              </Paper>
-              <Box display="flex" gap={2}>
-                <TextField
-                  id="userInput"
-                  variant="outlined"
-                  fullWidth
-                  multiline
-                  rows={3}
-                  placeholder={translations[currentLanguage].inputPlaceholder}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
+            <div class="space-y-4">
+                <!-- Sections will be dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const content = {
+            section1: {
+                icon: 'book',
+                title: 'حقوق الإنسان في الشرائع والأديان السماوية',
+                content: [
+                    {
+                        title: 'الديانة المسيحية',
+                        items: [
+                            'تدعو إلى التوحيد وتهتم بحقوق الإنسان وحرياته',
+                            'أضافت مبادئ سامية للحضارة الأوروبية',
+                            'تدعو إلى التسامح والمحبة والسلام وحماية الضعفاء',
+                            'عارضت عقوبة الإعدام',
+                            'أقرت الالتزام المدني والديني',
+                            {
+                                title: 'الانتقادات',
+                                items: [
+                                    'معالجة حقوق الإنسان لم تكن على أساس ديني خالص',
+                                    'كان للكنيسة دور كبير في معالجة تلك الحقوق',
+                                    'الفقر والاستغلال في القرون الوسطى',
+                                    'دعت إلى حرية العقيدة وأهملت الحريات الأخرى'
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: 'الديانة اليهودية',
+                        items: [
+                            'مبنية على التوراة والتلمود',
+                            'لم تغفل حقوق الإنسان، ولكن لفئة معينة من أتباعها'
+                        ]
+                    },
+                    {
+                        title: 'حقوق الإنسان في الإسلام',
+                        items: [
+                            'تكريم الإنسان وتفضيله على باقي المخلوقات',
+                            {
+                                title: 'الحقوق الأساسية',
+                                items: [
+                                    'حق الحياة - حق مقدس وهبة من الله',
+                                    'حق المساواة - لا تمييز بين الناس',
+                                    'حق الاختيار - حرية العقيدة',
+                                    'حقوق المرأة - مكانة مرموقة ومساواة',
+                                    'حق التعليم - فريضة',
+                                    'حق العمل - واجب وشرف',
+                                    'حق الملكية - مضمون ومحمي',
+                                    'حق حرية التجارة',
+                                    'حق حرمة المسكن',
+                                    'حق التنقل'
+                                ]
+                            }
+                        ]
                     }
-                  }}
-                />
-                <Button
-                  variant="contained"
-                  color="primary"
-                  endIcon={<i className="ri-send-plane-fill"></i>}
-                  onClick={handleSendMessage}
-                >
-                  {translations[currentLanguage].send}
-                </Button>
-              </Box>
-              {loading && (
-                <Box display="flex" justifyContent="center" alignItems="center" mt={2}>
-                  <CircularProgress />
-                </Box>
-              )}
-              <Box textAlign="center" mt={2}>
-                <a
-                  href="https://t.me/eylia5"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: 'none', color: 'inherit' }}
-                >
-                  <i className="ri-telegram-fill" style={{ fontSize: '1.5rem', verticalAlign: 'middle' }}></i>
-                  <span style={{ verticalAlign: 'middle', marginLeft: '8px' }}>{translations[currentLanguage].contact}</span>
-                </a>
-              </Box>
-            </Paper>
-          </Container>
-        </ThemeProvider>
-      );
-    };
+                ]
+            },
+            section2: {
+                icon: 'scale',
+                title: 'مصادر حقوق الإنسان',
+                content: [
+                    {
+                        title: 'المصادر الدولية',
+                        items: [
+                            {
+                                title: 'الإعلان العالمي لحقوق الإنسان - 1948',
+                                items: [
+                                    'الحقوق المدنية والسياسية',
+                                    'الحقوق الاقتصادية والاجتماعية',
+                                    'الحقوق الثقافية',
+                                    'شمولية وعالمية الحقوق'
+                                ]
+                            },
+                            'العهد الدولي للحقوق الاقتصادية والاجتماعية - 1966',
+                            'العهد الدولي للحقوق المدنية والسياسية - 1966'
+                        ]
+                    },
+                    {
+                        title: 'المصادر الوطنية',
+                        items: [
+                            'الدساتير والتشريعات الداخلية',
+                            'إعلان حقوق الإنسان والمواطن الفرنسي - 1789',
+                            'دستور جمهورية العراق - 2005'
+                        ]
+                    }
+                ]
+            },
+            section3: {
+                icon: 'shield',
+                title: 'ضمانات حقوق الإنسان',
+                content: [
+                    {
+                        title: 'الضمانات الداخلية',
+                        items: [
+                            {
+                                title: 'ضمانات دستورية',
+                                items: [
+                                    'سمو الدستور',
+                                    'مبدأ سيادة القانون',
+                                    'مبدأ الفصل بين السلطات'
+                                ]
+                            },
+                            {
+                                title: 'ضمانات قضائية',
+                                items: [
+                                    'الرقابة على دستورية القوانين',
+                                    'الرقابة القضائية على أعمال الإدارة'
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        title: 'ضمانات في الإسلام',
+                        items: [
+                            'مبدأ ثنائية المسؤولية',
+                            'الصفة الدينية للقانون الإسلامي'
+                        ]
+                    },
+                    {
+                        title: 'ضمانات دولية وإقليمية',
+                        items: [
+                            'المنظمات الدولية',
+                            'المحاكم الإقليمية',
+                            'المعاهدات والمواثيق الدولية'
+                        ]
+                    }
+                ]
+            }
+        };
 
-    ReactDOM.render(<App />, document.getElementById('root'));
-  </script>
+        function createSection(id, data) {
+            return `
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <button class="menu-item w-full flex items-center justify-between p-4 bg-gradient-to-l from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 transition-all" onclick="toggleSection('${id}')">
+                        <div class="flex items-center gap-3">
+                            <i data-feather="${data.icon}" class="text-indigo-600"></i>
+                            <span class="font-semibold text-gray-900">${data.title}</span>
+                        </div>
+                        <i data-feather="chevron-down" class="chevron-icon text-indigo-600"></i>
+                    </button>
+                    <div id="${id}" class="section-content bg-white p-4">
+                        ${renderContent(data.content)}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderContent(items) {
+            return items.map(item => `
+                <div class="sub-item mt-4">
+                    <h3 class="font-medium text-gray-800 mb-2">${item.title}</h3>
+                    <ul class="space-y-2">
+                        ${renderItems(item.items)}
+                    </ul>
+                </div>
+            `).join('');
+        }
+
+        function renderItems(items) {
+            return items.map(item => {
+                if (typeof item === 'string') {
+                    return `
+                        <li class="text-gray-600 hover:bg-gray-50 p-2 rounded-md transition-colors">
+                            ${item}
+                        </li>
+                    `;
+                } else {
+                    return `
+                        <li class="mt-2">
+                            <h4 class="font-medium text-gray-700 mb-1">${item.title}</h4>
+                            <ul class="space-y-1 mr-4">
+                                ${renderItems(item.items)}
+                            </ul>
+                        </li>
+                    `;
+                }
+            }).join('');
+        }
+
+        // Initialize content
+        document.querySelector('.space-y-4').innerHTML = Object.entries(content)
+            .map(([id, data]) => createSection(id, data))
+            .join('');
+
+        // Initialize Feather icons
+        feather.replace();
+
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const button = section.previousElementSibling;
+            const icon = button.querySelector('.chevron-icon');
+            
+            const allSections = document.querySelectorAll('.section-content');
+            const allIcons = document.querySelectorAll('.chevron-icon');
+            
+            allSections.forEach(s => {
+                if (s.id !== sectionId) {
+                    s.classList.remove('active');
+                }
+            });
+            
+            allIcons.forEach(i => {
+                if (i !== icon) {
+                    i.classList.remove('rotate-icon');
+                }
+            });
+
+            section.classList.toggle('active');
+            icon.classList.toggle('rotate-icon');
+            
+            feather.replace();
+        }
+    </script>
 </body>
 </html>
