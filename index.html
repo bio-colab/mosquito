@@ -1,259 +1,62 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>امتحان حقوق الإنسان</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <style>
-        .section-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-        .section-content.active {
-            max-height: 2000px;
-            transition: max-height 0.5s ease-in;
-        }
-        .menu-item:hover {
-            background: linear-gradient(to left, #EFF6FF, #EEF2FF);
-        }
-        .sub-item {
-            border-right: 2px solid #E5E7EB;
-            margin-right: 1rem;
-            padding-right: 1rem;
-        }
-        .chevron-icon {
-            transition: transform 0.3s ease;
-        }
-        .rotate-icon {
-            transform: rotate(180deg);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>حسنين - مساعد الطب المشترك</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <!-- External stylesheets -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-gray-50 min-h-screen py-8">
-    <div class="max-w-4xl mx-auto px-4">
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <h1 class="text-3xl font-bold text-center mb-2 text-gray-800">امتحان حقوق الإنسان</h1>
-            <p class="text-center text-gray-600 mb-8">النقاط الرئيسية</p>
-
-            <div class="space-y-4">
-                <!-- Sections will be dynamically populated -->
-            </div>
-        </div>
+<body>
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <button class="new-chat-button" id="newChatButton" title="محادثة جديدة" aria-label="بدء محادثة جديدة">
+      <i class="fas fa-stethoscope"></i>
+    </button>
+    <img src="https://londonactd.uk/shar-alklyt.png" alt="شعار الجامعة" class="logo-small" loading="lazy">
+    <h1 class="app-title">حسنين - مساعد الطب المشترك</h1>
+    <div class="dark-mode-toggle" id="darkModeToggle" aria-label="تبديل وضع الإضاءة">
+      <i class="fas fa-moon"></i>
     </div>
+  </div>
 
-    <script>
-        const content = {
-            section1: {
-                icon: 'book',
-                title: 'حقوق الإنسان في الشرائع والأديان السماوية',
-                content: [
-                    {
-                        title: 'الديانة المسيحية',
-                        items: [
-                            'تدعو إلى التوحيد وتهتم بحقوق الإنسان وحرياته',
-                            'أضافت مبادئ سامية للحضارة الأوروبية',
-                            'تدعو إلى التسامح والمحبة والسلام وحماية الضعفاء',
-                            'عارضت عقوبة الإعدام',
-                            'أقرت الالتزام المدني والديني',
-                            {
-                                title: 'الانتقادات',
-                                items: [
-                                    'معالجة حقوق الإنسان لم تكن على أساس ديني خالص',
-                                    'كان للكنيسة دور كبير في معالجة تلك الحقوق',
-                                    'الفقر والاستغلال في القرون الوسطى',
-                                    'دعت إلى حرية العقيدة وأهملت الحريات الأخرى'
-                                ]
-                            }
-                        ]
-                    },
-                    {
-                        title: 'الديانة اليهودية',
-                        items: [
-                            'مبنية على التوراة والتلمود',
-                            'لم تغفل حقوق الإنسان، ولكن لفئة معينة من أتباعها'
-                        ]
-                    },
-                    {
-                        title: 'حقوق الإنسان في الإسلام',
-                        items: [
-                            'تكريم الإنسان وتفضيله على باقي المخلوقات',
-                            {
-                                title: 'الحقوق الأساسية',
-                                items: [
-                                    'حق الحياة - حق مقدس وهبة من الله',
-                                    'حق المساواة - لا تمييز بين الناس',
-                                    'حق الاختيار - حرية العقيدة',
-                                    'حقوق المرأة - مكانة مرموقة ومساواة',
-                                    'حق التعليم - فريضة',
-                                    'حق العمل - واجب وشرف',
-                                    'حق الملكية - مضمون ومحمي',
-                                    'حق حرية التجارة',
-                                    'حق حرمة المسكن',
-                                    'حق التنقل'
-                                ]
-                            }
-                        ]
-                    }
-                ]
-            },
-            section2: {
-                icon: 'scale',
-                title: 'مصادر حقوق الإنسان',
-                content: [
-                    {
-                        title: 'المصادر الدولية',
-                        items: [
-                            {
-                                title: 'الإعلان العالمي لحقوق الإنسان - 1948',
-                                items: [
-                                    'الحقوق المدنية والسياسية',
-                                    'الحقوق الاقتصادية والاجتماعية',
-                                    'الحقوق الثقافية',
-                                    'شمولية وعالمية الحقوق'
-                                ]
-                            },
-                            'العهد الدولي للحقوق الاقتصادية والاجتماعية - 1966',
-                            'العهد الدولي للحقوق المدنية والسياسية - 1966'
-                        ]
-                    },
-                    {
-                        title: 'المصادر الوطنية',
-                        items: [
-                            'الدساتير والتشريعات الداخلية',
-                            'إعلان حقوق الإنسان والمواطن الفرنسي - 1789',
-                            'دستور جمهورية العراق - 2005'
-                        ]
-                    }
-                ]
-            },
-            section3: {
-                icon: 'shield',
-                title: 'ضمانات حقوق الإنسان',
-                content: [
-                    {
-                        title: 'الضمانات الداخلية',
-                        items: [
-                            {
-                                title: 'ضمانات دستورية',
-                                items: [
-                                    'سمو الدستور',
-                                    'مبدأ سيادة القانون',
-                                    'مبدأ الفصل بين السلطات'
-                                ]
-                            },
-                            {
-                                title: 'ضمانات قضائية',
-                                items: [
-                                    'الرقابة على دستورية القوانين',
-                                    'الرقابة القضائية على أعمال الإدارة'
-                                ]
-                            }
-                        ]
-                    },
-                    {
-                        title: 'ضمانات في الإسلام',
-                        items: [
-                            'مبدأ ثنائية المسؤولية',
-                            'الصفة الدينية للقانون الإسلامي'
-                        ]
-                    },
-                    {
-                        title: 'ضمانات دولية وإقليمية',
-                        items: [
-                            'المنظمات الدولية',
-                            'المحاكم الإقليمية',
-                            'المعاهدات والمواثيق الدولية'
-                        ]
-                    }
-                ]
-            }
-        };
+  <!-- Chat Container -->
+  <div class="chat-container">
+    <div class="chat-messages" id="chatMessages">
+      <div class="message bot-message">
+        <div class="message-header">
+          حسنين
+          <button class="copy-button" title="نسخ" aria-label="نسخ النص">
+            <i class="far fa-copy"></i>
+          </button>
+          <small class="timestamp"></small>
+        </div>
+        <div class="message-content">
+          السلام عليكم، أنا حسنين، مساعد طبي ذكي. أهدف إلى مساعدتك بفهم حالتك الصحية وتقديم أفضل نصيحة ممكنة. من فضلك، أخبرني عن وضعك الصحي الحالي، أي أعراض تشعر بها، أو أي مشكلة تواجهها الآن.
+        </div>
+        <div class="loading-indicator">
+          <div class="spinner-border" role="status"></div>
+        </div>
+      </div>
+    </div>
+    <div class="input-container">
+      <div class="input-wrapper">
+        <textarea id="userInput" placeholder="اكتب عن حالتك الصحية أو اسألني أي سؤال طبي..." rows="1" aria-label="إدخال سؤال طبي"></textarea>
+        <button id="sendBtn" aria-label="إرسال الرسالة">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
 
-        function createSection(id, data) {
-            return `
-                <div class="border border-gray-200 rounded-lg overflow-hidden">
-                    <button class="menu-item w-full flex items-center justify-between p-4 bg-gradient-to-l from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 transition-all" onclick="toggleSection('${id}')">
-                        <div class="flex items-center gap-3">
-                            <i data-feather="${data.icon}" class="text-indigo-600"></i>
-                            <span class="font-semibold text-gray-900">${data.title}</span>
-                        </div>
-                        <i data-feather="chevron-down" class="chevron-icon text-indigo-600"></i>
-                    </button>
-                    <div id="${id}" class="section-content bg-white p-4">
-                        ${renderContent(data.content)}
-                    </div>
-                </div>
-            `;
-        }
+  <!-- Disclaimer -->
+  <div class="disclaimer">تنبيه: حسنين ليس بديلاً عن استشارة طبيب مختص.</div>
 
-        function renderContent(items) {
-            return items.map(item => `
-                <div class="sub-item mt-4">
-                    <h3 class="font-medium text-gray-800 mb-2">${item.title}</h3>
-                    <ul class="space-y-2">
-                        ${renderItems(item.items)}
-                    </ul>
-                </div>
-            `).join('');
-        }
-
-        function renderItems(items) {
-            return items.map(item => {
-                if (typeof item === 'string') {
-                    return `
-                        <li class="text-gray-600 hover:bg-gray-50 p-2 rounded-md transition-colors">
-                            ${item}
-                        </li>
-                    `;
-                } else {
-                    return `
-                        <li class="mt-2">
-                            <h4 class="font-medium text-gray-700 mb-1">${item.title}</h4>
-                            <ul class="space-y-1 mr-4">
-                                ${renderItems(item.items)}
-                            </ul>
-                        </li>
-                    `;
-                }
-            }).join('');
-        }
-
-        // Initialize content
-        document.querySelector('.space-y-4').innerHTML = Object.entries(content)
-            .map(([id, data]) => createSection(id, data))
-            .join('');
-
-        // Initialize Feather icons
-        feather.replace();
-
-        function toggleSection(sectionId) {
-            const section = document.getElementById(sectionId);
-            const button = section.previousElementSibling;
-            const icon = button.querySelector('.chevron-icon');
-            
-            const allSections = document.querySelectorAll('.section-content');
-            const allIcons = document.querySelectorAll('.chevron-icon');
-            
-            allSections.forEach(s => {
-                if (s.id !== sectionId) {
-                    s.classList.remove('active');
-                }
-            });
-            
-            allIcons.forEach(i => {
-                if (i !== icon) {
-                    i.classList.remove('rotate-icon');
-                }
-            });
-
-            section.classList.toggle('active');
-            icon.classList.toggle('rotate-icon');
-            
-            feather.replace();
-        }
-    </script>
+  <!-- Load JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
